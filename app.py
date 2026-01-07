@@ -6,13 +6,21 @@ from groq import Groq
 
 app = Flask(__name__)
 
-# --- دریافت کلیدها از Environment Variables رندر ---
-# حتما این دو مورد را در پنل Render ست کنید
+# --- تنظیمات کلیدها (حتماً در Render ست شوند) ---
 CLASH_API_KEY = os.environ.get("CLASH_API_KEY")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+# این مورد جدید برای امنیت پروکسی اضافه شد
+PROXY_URL = os.environ.get("PROXY_URL") 
 
 client = Groq(api_key=GROQ_API_KEY)
 
+# تنظیم پروکسی برای دور زدن محدودیت آی‌پی سوپرسل
+PROXIES = {
+    "http": PROXY_URL,
+    "https": PROXY_URL
+} if PROXY_URL else None
+
+# --- قالب HTML (دقیقاً همان نسخه شما بدون تغییر) ---
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -158,7 +166,8 @@ def fetch_player_cards(tag):
     url = f"https://api.clashroyale.com/v1/players/%23{tag}"
     headers = {"Authorization": f"Bearer {CLASH_API_KEY}"}
     try:
-        res = requests.get(url, headers=headers, timeout=10)
+        # اینجا پروکسی اضافه شد تا محدودیت آی‌پی حل شود
+        res = requests.get(url, headers=headers, proxies=PROXIES, timeout=10)
         if res.status_code == 200:
             data = res.json()
             card_db = {}
@@ -227,6 +236,5 @@ def index():
     return render_template_string(HTML_TEMPLATE, deck=deck_data, elixir=elixir_avg)
 
 if __name__ == "__main__":
-    # رندر پورت را از متغیر محیطی میخواند. برای رندر هاست باید 0.0.0.0 باشد.
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
