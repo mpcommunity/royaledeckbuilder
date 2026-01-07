@@ -1,15 +1,15 @@
 import os
-import json
 import requests
+import json
 from flask import Flask, render_template_string, request
 from groq import Groq
 
 app = Flask(__name__)
 
-# --- دریافت کلیدها از تنظیمات رندر (Environment Variables) ---
-# پیشنهاد می‌شود کلیدها را در پنل Render ست کنید تا امنیت حفظ شود
-CLASH_API_KEY = os.environ.get("CLASH_API_KEY", "YOUR_DEFAULT_API_KEY_IF_NOT_SET")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "YOUR_DEFAULT_GROQ_KEY_IF_NOT_SET")
+# --- دریافت کلیدها از Environment Variables رندر ---
+# حتما این دو مورد را در پنل Render ست کنید
+CLASH_API_KEY = os.environ.get("CLASH_API_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -19,7 +19,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clash AI Architect | Ayhan</title>
+    <title>Clash AI Architect</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
@@ -63,10 +63,10 @@ HTML_TEMPLATE = """
             font-family: 'Vazirmatn';
             font-size: 1rem;
             display: block;
-            outline: none;
+            transition: 0.3s;
         }
 
-        select option { background: #1a1a2e; color: white; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,210,255,0.3); }
 
         button {
             background: linear-gradient(45deg, #00d2ff, #3a7bd5);
@@ -75,7 +75,7 @@ HTML_TEMPLATE = """
             cursor: pointer; transition: 0.4s; margin-top: 20px;
         }
 
-        button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,210,255,0.4); }
+        button:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 30px rgba(0,210,255,0.5); }
 
         .deck-grid {
             display: grid;
@@ -89,7 +89,7 @@ HTML_TEMPLATE = """
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px; padding: 12px;
             border: 1px solid var(--border);
-            transition: 0.3s;
+            transition: 0.3s ease-in-out;
         }
 
         .card-wrapper:hover { border-color: var(--primary); transform: translateY(-8px); background: rgba(0, 210, 255, 0.1); }
@@ -104,29 +104,29 @@ HTML_TEMPLATE = """
             box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
         }
 
-        footer { margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.8; }
-        .loader { display: none; color: var(--accent); margin-top: 25px; font-weight: bold; }
+        footer { margin-top: auto; padding: 40px; font-size: 1rem; letter-spacing: 1px; }
+        .loader { display: none; color: var(--accent); margin-top: 25px; font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
     <div class="glass-panel animate__animated animate__zoomIn">
-        <h1>Clash AI</h1>
-        <p style="opacity: 0.7;">معماری هوشمند دک بر اساس متای جهانی</p>
+        <h1>Clash AI Architect</h1>
+        <p style="opacity: 0.7; font-size: 1.1rem;">مهندسی دقیق دک بر اساس متای جهانی</p>
 
         <form method="POST" onsubmit="document.getElementById('loading').style.display='block';">
-            <input type="text" name="tag" placeholder="تگ بازیکن: مثلا VQY8QCVL0" required>
+            <input type="text" name="tag" placeholder="تگ بازیکن: VQY8QCVL0" required>
             <select name="style">
-                <option value="Fast Cycle">سایکل سریع (Fast Cycle)</option>
-                <option value="Heavy Beatdown">سنگین (Beatdown)</option>
-                <option value="Bridge Spam">تهاجمی پل (Bridge Spam)</option>
-                <option value="Control">کنترلی (Control)</option>
-                <option value="7x Elixir">اکسیر ۷ برابر (Infinite)</option>
+                <option value="Fast Cycle (Average 2.6-3.0)">سایکل سریع (Fast Cycle)</option>
+                <option value="Heavy Beatdown (Golem/Lava/Electro Giant)">سنگین و قدرتی (Beatdown)</option>
+                <option value="Bridge Spam (Pekka/Ram Rider)">تهاجمی پل (Bridge Spam)</option>
+                <option value="Control & Defense (Graveyard/Miner)">کنترلی و دفاعی (Control)</option>
+                <option value="7x Elixir Infinite Chaos">اکسیر ۷ برابر (7x Elixir)</option>
             </select>
-            <button type="submit">آنالیز و ساخت دک</button>
+            <button type="submit">آنالیز و چیدمان</button>
         </form>
 
-        <div id="loading" class="loader animate__animated animate__flash animate__infinite">در حال دریافت اطلاعات از سرور سوپرسل...</div>
+        <div id="loading" class="loader animate__animated animate__pulse animate__infinite">در حال آنالیز لایه به لایه کارت‌ها...</div>
 
         {% if deck %}
             <div class="deck-grid">
@@ -143,14 +143,10 @@ HTML_TEMPLATE = """
             </div>
             {% endif %}
         {% endif %}
-
-        {% if error %}
-            <div style="color: #ff4d6d; margin-top: 20px;">{{ error }}</div>
-        {% endif %}
     </div>
 
     <footer>
-        ساخته شده با ❤️ توسط آیهان قلی زاده
+        ساخته شده با ❤️ توسط <b>آیهان قلی زاده</b>
     </footer>
 
 </body>
@@ -173,30 +169,39 @@ def fetch_player_cards(tag):
                 api_cards.append({
                     "name": name,
                     "level": c['level'] + (14 - c['maxLevel']),
-                    "elixir": c.get('elixirCost', 0)
+                    "elixir": c.get('elixirCost', 0),
+                    "evo": "evolutionLevel" in c
                 })
             return api_cards, card_db
-        return None, None
-    except:
-        return None, None
+    except Exception as e:
+        print(f"Fetch Error: {e}")
+    return None, None
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    deck_data, elixir_avg, error_msg = [], None, None
+    deck_data, elixir_avg = [], None
     if request.method == "POST":
-        tag = request.form.get("tag")
-        style = request.form.get("style")
+        tag, style = request.form.get("tag"), request.form.get("style")
         cards_list, card_db = fetch_player_cards(tag)
         
         if cards_list:
             json_input = json.dumps(cards_list, separators=(',', ':'))
-            system_instruction = "Professional Clash Royale Analyst. Build a top-tier deck. Output EXACTLY 8 card names from the data provided, one per line. No extra words."
+            
+            system_instruction = """
+            Act as a CRL Professional Analyst. Build a top-tier deck.
+            CRITICAL RULES:
+            1. SYNERGY: Pair Win-Condition (e.g. Hog, Giant) with perfect supports.
+            2. BALANCE: Every deck must have 1 Small Spell, 1 Big Spell, and 1 Anti-Air unit.
+            3. LEVELS: Priority 1 is card level. Do not use low level cards.
+            4. ARCHETYPE: Strictly follow the user's requested style.
+            5. OUTPUT: Only list 8 exact names from the data, one per line. No talking.
+            """
             
             try:
                 chat = client.chat.completions.create(
                     messages=[
                         {"role": "system", "content": system_instruction},
-                        {"role": "user", "content": f"Archetype: {style}. Data: {json_input}"}
+                        {"role": "user", "content": f"User Archetype: {style}. Player Cards Data: {json_input}"}
                     ],
                     model="llama-3.3-70b-versatile",
                     temperature=0.2
@@ -215,14 +220,13 @@ def index():
                 
                 if count > 0:
                     elixir_avg = round(total_elixir / count, 1)
-            except:
-                error_msg = "خطا در ارتباط با هوش مصنوعی."
-        else:
-            error_msg = "خطا: تگ پیدا نشد یا آی‌پی مسدود است."
-
-    return render_template_string(HTML_TEMPLATE, deck=deck_data, elixir=elixir_avg, error=error_msg)
+                
+            except Exception as e:
+                print(f"AI Error: {e}")
+                
+    return render_template_string(HTML_TEMPLATE, deck=deck_data, elixir=elixir_avg)
 
 if __name__ == "__main__":
-    # تنظیمات پورت برای رندر
-    port = int(os.environ.get("PORT", 5000))
+    # رندر پورت را از متغیر محیطی میخواند. برای رندر هاست باید 0.0.0.0 باشد.
+    port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
